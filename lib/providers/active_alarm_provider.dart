@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
-import 'package:sensors_plus/sensors_plus.dart';
+import 'package:pedometer/pedometer.dart';
 import 'package:alarm/utils/alarm_set.dart';
 import '../models/step_alarm_settings.dart';
 import 'alarm_provider.dart';
@@ -16,8 +16,7 @@ enum ActiveAlarmState {
 class ActiveAlarmProvider extends ChangeNotifier {
   final AlarmProvider alarmProvider;
   StreamSubscription<AlarmSet>? _ringSubscription;
-  StreamSubscription<UserAccelerometerEvent>? _stepSubscription;
-  DateTime _lastStepTime = DateTime.now();
+  StreamSubscription<StepCount>? _stepSubscription;
   
   ActiveAlarmState _state = ActiveAlarmState.idle;
   ActiveAlarmState get state => _state;
@@ -146,26 +145,22 @@ class ActiveAlarmProvider extends ChangeNotifier {
     _initialSteps = 0;
     _currentSteps = 0;
     _targetSteps = _activeStepAlarm?.requiredSteps ?? 10;
-    _lastStepTime = DateTime.now();
+    bool isFirstEvent = true;
 
-    _stepSubscription = userAccelerometerEventStream().listen(
-      (UserAccelerometerEvent event) {
-        final double magnitudeSq = event.x * event.x + event.y * event.y + event.z * event.z;
+    _stepSubscription = Pedometer.stepCountStream.listen(
+      (StepCount event) {
+        if (isFirstEvent) {
+          _initialSteps = event.steps;
+          _currentSteps = event.steps;
+          isFirstEvent = false;
+        } else {
+          _currentSteps = event.steps;
+        }
         
-        // Typical step/shake registers > 12.0 magnitude (squared = 144)
-        if (magnitudeSq > 144.0) { 
-          final now = DateTime.now();
-          // Debounce: prevent multiple triggers per physical step (400ms)
-          if (now.difference(_lastStepTime).inMilliseconds > 400) {
-            _lastStepTime = now;
-            _currentSteps++;
-            
-            if (stepsTaken >= _targetSteps) {
-              _handleSuccess();
-            } else {
-              notifyListeners();
-            }
-          }
+        if (stepsTaken >= _targetSteps) {
+          _handleSuccess();
+        } else {
+          notifyListeners();
         }
       },
       onError: (error) {

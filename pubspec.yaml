@@ -40,7 +40,7 @@ dependencies:
   file_picker: ^11.0.2
   provider: ^6.1.5+1
   intl: ^0.20.2
-  sensors_plus: ^7.0.0
+  pedometer: ^4.2.0
 
 dev_dependencies:
   flutter_test:

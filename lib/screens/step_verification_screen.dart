@@ -87,7 +87,16 @@ class StepVerificationScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Keep walking!\nAndroid batches steps to save battery.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                   const Spacer(),
                   
                   // Countdown Timer
