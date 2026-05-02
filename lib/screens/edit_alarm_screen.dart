@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/step_alarm_settings.dart';
@@ -15,48 +14,76 @@ class EditAlarmScreen extends StatefulWidget {
 }
 
 class _EditAlarmScreenState extends State<EditAlarmScreen> {
-  late int _selectedHour;
-  late int _selectedMinute;
+  late TimeOfDay _selectedTime;
   late TextEditingController _labelController;
   late int _requiredSteps;
   late int _timeLimitMinutes;
   late bool _vibrate;
   String? _customRingtonePath;
 
-  late FixedExtentScrollController _hourController;
-  late FixedExtentScrollController _minuteController;
-
   @override
   void initState() {
     super.initState();
     if (widget.alarm != null) {
-      _selectedHour = widget.alarm!.dateTime.hour;
-      _selectedMinute = widget.alarm!.dateTime.minute;
+      _selectedTime = TimeOfDay.fromDateTime(widget.alarm!.dateTime);
       _labelController = TextEditingController(text: widget.alarm!.label);
       _requiredSteps = widget.alarm!.requiredSteps;
       _timeLimitMinutes = widget.alarm!.timeLimitMinutes;
       _vibrate = widget.alarm!.vibrate;
       _customRingtonePath = widget.alarm!.customRingtonePath;
     } else {
-      _selectedHour = TimeOfDay.now().hour;
-      _selectedMinute = TimeOfDay.now().minute;
+      _selectedTime = TimeOfDay.now();
       _labelController = TextEditingController(text: 'Wake Up!');
       _requiredSteps = 10;
       _timeLimitMinutes = 10;
       _vibrate = true;
       _customRingtonePath = null;
     }
-
-    _hourController = FixedExtentScrollController(initialItem: _selectedHour);
-    _minuteController = FixedExtentScrollController(initialItem: _selectedMinute);
   }
 
   @override
   void dispose() {
     _labelController.dispose();
-    _hourController.dispose();
-    _minuteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      initialEntryMode: TimePickerEntryMode.dial,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFF8AB4F8),
+              onPrimary: Colors.black,
+              surface: Color(0xFF303030),
+              onSurface: Colors.white,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: const Color(0xFF303030),
+              dialHandColor: const Color(0xFF8AB4F8),
+              dialBackgroundColor: Colors.grey.shade800,
+              hourMinuteColor: const Color(0xFF3C4043),
+              hourMinuteTextColor: const Color(0xFF8AB4F8),
+              dayPeriodColor: const Color(0xFF3C4043),
+              dayPeriodTextColor: Colors.white,
+              entryModeIconColor: Colors.white54,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
   }
 
   Future<void> _pickRingtone() async {
@@ -77,8 +104,8 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
       now.year,
       now.month,
       now.day,
-      _selectedHour,
-      _selectedMinute,
+      _selectedTime.hour,
+      _selectedTime.minute,
     );
 
     final nowWithoutSeconds = DateTime(now.year, now.month, now.day, now.hour, now.minute);
@@ -152,6 +179,9 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hours = _selectedTime.hour.toString().padLeft(2, '0');
+    final minutes = _selectedTime.minute.toString().padLeft(2, '0');
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -179,107 +209,113 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
       ),
       body: ListView(
         children: [
-          // Inline Time Picker (scrollable wheels)
-          SizedBox(
-            height: 200,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Hour wheel
-                SizedBox(
-                  width: 100,
-                  child: ListWheelScrollView.useDelegate(
-                    controller: _hourController,
-                    itemExtent: 64,
-                    perspective: 0.003,
-                    diameterRatio: 1.5,
-                    physics: const FixedExtentScrollPhysics(),
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        _selectedHour = index;
-                      });
-                    },
-                    childDelegate: ListWheelChildBuilderDelegate(
-                      childCount: 24,
-                      builder: (context, index) {
-                        final isSelected = index == _selectedHour;
-                        return Center(
-                          child: Text(
-                            index.toString().padLeft(2, '0'),
-                            style: TextStyle(
-                              fontSize: isSelected ? 56 : 36,
-                              fontWeight: FontWeight.w400,
-                              color: isSelected
-                                  ? const Color(0xFF8AB4F8)
-                                  : Colors.white.withOpacity(0.2),
-                            ),
-                          ),
-                        );
-                      },
+          // Time Display — tap to open circular dial picker
+          GestureDetector(
+            onTap: _pickTime,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    hours,
+                    style: const TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF8AB4F8),
+                      letterSpacing: -2,
                     ),
                   ),
-                ),
-                // Colon separator
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text(
+                  const Text(
                     ':',
                     style: TextStyle(
-                      fontSize: 56,
+                      fontSize: 72,
                       fontWeight: FontWeight.w300,
                       color: Colors.white54,
                     ),
                   ),
-                ),
-                // Minute wheel
-                SizedBox(
-                  width: 100,
-                  child: ListWheelScrollView.useDelegate(
-                    controller: _minuteController,
-                    itemExtent: 64,
-                    perspective: 0.003,
-                    diameterRatio: 1.5,
-                    physics: const FixedExtentScrollPhysics(),
-                    onSelectedItemChanged: (index) {
-                      setState(() {
-                        _selectedMinute = index;
-                      });
-                    },
-                    childDelegate: ListWheelChildBuilderDelegate(
-                      childCount: 60,
-                      builder: (context, index) {
-                        final isSelected = index == _selectedMinute;
-                        return Center(
-                          child: Text(
-                            index.toString().padLeft(2, '0'),
-                            style: TextStyle(
-                              fontSize: isSelected ? 56 : 36,
-                              fontWeight: FontWeight.w400,
-                              color: isSelected
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.2),
-                            ),
-                          ),
-                        );
-                      },
+                  Text(
+                    minutes,
+                    style: const TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                      letterSpacing: -2,
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+
+          // --- Settings ---
+
+          // Required Steps — inline increment/decrement
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.directions_walk, color: Colors.white.withOpacity(0.7), size: 24),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Required steps',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$_requiredSteps steps',
+                        style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+                // Decrement
+                IconButton(
+                  onPressed: _requiredSteps > 10
+                      ? () => setState(() => _requiredSteps -= 10)
+                      : null,
+                  icon: Icon(
+                    Icons.remove_circle_outline,
+                    color: _requiredSteps > 10
+                        ? const Color(0xFF8AB4F8)
+                        : Colors.white.withOpacity(0.15),
+                    size: 28,
+                  ),
+                ),
+                // Value
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    '$_requiredSteps',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                // Increment
+                IconButton(
+                  onPressed: _requiredSteps < 100
+                      ? () => setState(() => _requiredSteps += 10)
+                      : null,
+                  icon: Icon(
+                    Icons.add_circle_outline,
+                    color: _requiredSteps < 100
+                        ? const Color(0xFF8AB4F8)
+                        : Colors.white.withOpacity(0.15),
+                    size: 28,
                   ),
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 8),
-          Divider(height: 1, color: Colors.white.withOpacity(0.1)),
-
-          // --- Settings List ---
-
-          // Required Steps
-          _buildSettingTile(
-            icon: Icons.directions_walk,
-            title: 'Required steps',
-            subtitle: '$_requiredSteps steps',
-            onTap: () => _showStepsPicker(),
           ),
 
           Divider(height: 1, indent: 72, color: Colors.white.withOpacity(0.08)),
@@ -391,51 +427,6 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showStepsPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF303030),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Required steps',
-                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 16),
-              ...([10, 20, 30, 50, 100].map((steps) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    _requiredSteps == steps ? Icons.radio_button_checked : Icons.radio_button_off,
-                    color: _requiredSteps == steps ? const Color(0xFF8AB4F8) : Colors.white54,
-                  ),
-                  title: Text(
-                    '$steps steps',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _requiredSteps = steps;
-                    });
-                    Navigator.pop(context);
-                  },
-                );
-              })),
-            ],
-          ),
-        );
-      },
     );
   }
 
