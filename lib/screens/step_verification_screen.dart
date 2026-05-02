@@ -25,11 +25,12 @@ class StepVerificationScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 40),
                   const Text(
                     'STEP VERIFICATION',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -49,7 +50,8 @@ class StepVerificationScreen extends StatelessWidget {
                   const Spacer(),
                   
                   // Circular Progress Indicator
-                  Stack(
+                  Center(
+                  child: Stack(
                     alignment: Alignment.center,
                     children: [
                       SizedBox(
@@ -86,6 +88,7 @@ class StepVerificationScreen extends StatelessWidget {
                         ],
                       ),
                     ],
+                  ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -135,6 +138,7 @@ class StepVerificationScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   const Text(
                     'If time runs out, the penalty alarm will trigger.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.white54, fontSize: 14),
                   ),
                   const SizedBox(height: 40),
