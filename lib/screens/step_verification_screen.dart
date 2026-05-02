@@ -20,128 +20,158 @@ class StepVerificationScreen extends StatelessWidget {
         final progress = targetSteps > 0 ? (stepsTaken / targetSteps).clamp(0.0, 1.0) : 0.0;
         
         return Scaffold(
-          backgroundColor: const Color(0xFF121212),
+          backgroundColor: Colors.black,
           body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 48),
+
+                  // Title
                   const Text(
-                    'STEP VERIFICATION',
+                    'Step Verification',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                      color: Colors.deepPurpleAccent,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Text(
-                    'Walk $targetSteps steps to fully dismiss the alarm.',
+                    'Walk $targetSteps steps to dismiss',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.5),
                     ),
                   ),
+
                   const Spacer(),
                   
-                  // Circular Progress Indicator
+                  // Circular Progress
                   Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        width: 250,
-                        height: 250,
-                        child: CircularProgressIndicator(
-                          value: progress,
-                          strokeWidth: 20,
-                          backgroundColor: const Color(0xFF1E1E1E),
-                          color: Colors.tealAccent,
-                          strokeCap: StrokeCap.round,
-                        ),
-                      ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
+                    child: SizedBox(
+                      width: 240,
+                      height: 240,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          const Icon(Icons.directions_walk, size: 40, color: Colors.tealAccent),
-                          const SizedBox(height: 8),
-                          Text(
-                            '$stepsTaken',
-                            style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          // Background ring
+                          SizedBox(
+                            width: 240,
+                            height: 240,
+                            child: CircularProgressIndicator(
+                              value: 1.0,
+                              strokeWidth: 12,
+                              color: Colors.white.withOpacity(0.08),
                             ),
                           ),
-                          Text(
-                            '/ $targetSteps steps',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.white54,
+                          // Progress ring
+                          SizedBox(
+                            width: 240,
+                            height: 240,
+                            child: CircularProgressIndicator(
+                              value: progress,
+                              strokeWidth: 12,
+                              color: const Color(0xFF8AB4F8),
+                              strokeCap: StrokeCap.round,
                             ),
+                          ),
+                          // Center content
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.directions_walk,
+                                size: 32,
+                                color: const Color(0xFF8AB4F8).withOpacity(0.8),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$stepsTaken',
+                                style: const TextStyle(
+                                  fontSize: 56,
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                '/ $targetSteps',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white.withOpacity(0.4),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
+
+                  const SizedBox(height: 24),
+                  Text(
                     'Keep walking!\nAndroid batches steps to save battery.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.3),
+                      fontSize: 13,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
+
                   const Spacer(),
                   
                   // Countdown Timer
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 2),
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.redAccent.withOpacity(0.3),
+                        width: 1,
+                      ),
                     ),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
+                        Text(
                           'TIME REMAINING',
                           style: TextStyle(
-                            fontSize: 14,
-                            letterSpacing: 1.5,
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            letterSpacing: 2,
+                            color: Colors.redAccent.withOpacity(0.8),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _formatTime(provider.secondsRemaining),
                           style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 44,
+                            fontWeight: FontWeight.w300,
                             color: Colors.white,
                             fontFamily: 'monospace',
+                            letterSpacing: 4,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'If time runs out, the penalty alarm will trigger.',
+
+                  const SizedBox(height: 12),
+                  Text(
+                    'Penalty alarm triggers when time runs out',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white54, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.3),
+                      fontSize: 12,
+                    ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
