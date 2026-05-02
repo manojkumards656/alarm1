@@ -42,7 +42,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
   }
 
   void _initRingListener() {
-    _ringSubscription = Alarm.ringingStream.listen((alarmSettings) {
+    _ringSubscription = Alarm.ringing.listen((alarmSettings) {
       _handleAlarmRing(alarmSettings);
     });
   }

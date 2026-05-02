@@ -61,7 +61,7 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
   }
 
   Future<void> _pickRingtone() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.audio,
     );
 
