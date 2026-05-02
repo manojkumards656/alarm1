@@ -22,37 +22,38 @@ class StepVerificationScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.black,
           body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 48),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 48),
 
-                  // Title
-                  const Text(
-                    'Step Verification',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
+                    // Title
+                    const Text(
+                      'Step Verification',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Walk $targetSteps steps to dismiss',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.5),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Walk $targetSteps steps to dismiss',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
                     ),
-                  ),
 
-                  const Spacer(),
-                  
-                  // Circular Progress
-                  Center(
-                    child: SizedBox(
+                    const Spacer(),
+                    
+                    // Circular Progress
+                    SizedBox(
                       width: 240,
                       height: 240,
                       child: Stack(
@@ -91,6 +92,7 @@ class StepVerificationScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 '$stepsTaken',
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontSize: 56,
                                   fontWeight: FontWeight.w300,
@@ -99,6 +101,7 @@ class StepVerificationScreen extends StatelessWidget {
                               ),
                               Text(
                                 '/ $targetSteps',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white.withOpacity(0.4),
@@ -109,70 +112,72 @@ class StepVerificationScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
-                  Text(
-                    'Keep walking!\nAndroid batches steps to save battery.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-
-                  const Spacer(),
-                  
-                  // Countdown Timer
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.redAccent.withOpacity(0.3),
-                        width: 1,
+                    const SizedBox(height: 24),
+                    Text(
+                      'Keep walking!\nAndroid batches steps to save battery.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'TIME REMAINING',
-                          style: TextStyle(
-                            fontSize: 12,
-                            letterSpacing: 2,
-                            color: Colors.redAccent.withOpacity(0.8),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _formatTime(provider.secondsRemaining),
-                          style: const TextStyle(
-                            fontSize: 44,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white,
-                            fontFamily: 'monospace',
-                            letterSpacing: 4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
 
-                  const SizedBox(height: 12),
-                  Text(
-                    'Penalty alarm triggers when time runs out',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontSize: 12,
+                    const Spacer(),
+                    
+                    // Countdown Timer
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.redAccent.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'TIME REMAINING',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              letterSpacing: 2,
+                              color: Colors.redAccent.withOpacity(0.8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formatTime(provider.secondsRemaining),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 44,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.white,
+                              fontFamily: 'monospace',
+                              letterSpacing: 4,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+
+                    const SizedBox(height: 12),
+                    Text(
+                      'Penalty alarm triggers when time runs out',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
           ),

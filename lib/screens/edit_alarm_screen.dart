@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:intl/intl.dart';
 import '../models/step_alarm_settings.dart';
 import '../providers/alarm_provider.dart';
 
@@ -15,75 +15,48 @@ class EditAlarmScreen extends StatefulWidget {
 }
 
 class _EditAlarmScreenState extends State<EditAlarmScreen> {
-  late TimeOfDay _selectedTime;
+  late int _selectedHour;
+  late int _selectedMinute;
   late TextEditingController _labelController;
   late int _requiredSteps;
   late int _timeLimitMinutes;
   late bool _vibrate;
   String? _customRingtonePath;
 
+  late FixedExtentScrollController _hourController;
+  late FixedExtentScrollController _minuteController;
+
   @override
   void initState() {
     super.initState();
     if (widget.alarm != null) {
-      _selectedTime = TimeOfDay.fromDateTime(widget.alarm!.dateTime);
+      _selectedHour = widget.alarm!.dateTime.hour;
+      _selectedMinute = widget.alarm!.dateTime.minute;
       _labelController = TextEditingController(text: widget.alarm!.label);
       _requiredSteps = widget.alarm!.requiredSteps;
       _timeLimitMinutes = widget.alarm!.timeLimitMinutes;
       _vibrate = widget.alarm!.vibrate;
       _customRingtonePath = widget.alarm!.customRingtonePath;
     } else {
-      _selectedTime = TimeOfDay.now();
+      _selectedHour = TimeOfDay.now().hour;
+      _selectedMinute = TimeOfDay.now().minute;
       _labelController = TextEditingController(text: 'Wake Up!');
       _requiredSteps = 10;
       _timeLimitMinutes = 10;
       _vibrate = true;
       _customRingtonePath = null;
     }
+
+    _hourController = FixedExtentScrollController(initialItem: _selectedHour);
+    _minuteController = FixedExtentScrollController(initialItem: _selectedMinute);
   }
 
   @override
   void dispose() {
     _labelController.dispose();
+    _hourController.dispose();
+    _minuteController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF8AB4F8),
-              onPrimary: Colors.black,
-              surface: Color(0xFF303030),
-              onSurface: Colors.white,
-            ),
-            timePickerTheme: TimePickerThemeData(
-              backgroundColor: const Color(0xFF303030),
-              dialHandColor: const Color(0xFF8AB4F8),
-              dialBackgroundColor: Colors.grey.shade800,
-              hourMinuteColor: const Color(0xFF3C4043),
-              hourMinuteTextColor: const Color(0xFF8AB4F8),
-              dayPeriodColor: const Color(0xFF3C4043),
-              dayPeriodTextColor: Colors.white,
-              entryModeIconColor: Colors.white54,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedTime = picked;
-      });
-    }
   }
 
   Future<void> _pickRingtone() async {
@@ -104,11 +77,10 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
       now.year,
       now.month,
       now.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
+      _selectedHour,
+      _selectedMinute,
     );
-    
-    // If the time is in the past, schedule for tomorrow
+
     final nowWithoutSeconds = DateTime(now.year, now.month, now.day, now.hour, now.minute);
     if (dt.isBefore(nowWithoutSeconds)) {
       dt = dt.add(const Duration(days: 1));
@@ -180,9 +152,6 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hours = _selectedTime.hour.toString().padLeft(2, '0');
-    final minutes = _selectedTime.minute.toString().padLeft(2, '0');
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -210,51 +179,102 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
       ),
       body: ListView(
         children: [
-          // Time Display
-          GestureDetector(
-            onTap: _pickTime,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    hours,
-                    style: const TextStyle(
-                      fontSize: 72,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF8AB4F8),
-                      letterSpacing: -2,
+          // Inline Time Picker (scrollable wheels)
+          SizedBox(
+            height: 200,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Hour wheel
+                SizedBox(
+                  width: 100,
+                  child: ListWheelScrollView.useDelegate(
+                    controller: _hourController,
+                    itemExtent: 64,
+                    perspective: 0.003,
+                    diameterRatio: 1.5,
+                    physics: const FixedExtentScrollPhysics(),
+                    onSelectedItemChanged: (index) {
+                      setState(() {
+                        _selectedHour = index;
+                      });
+                    },
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      childCount: 24,
+                      builder: (context, index) {
+                        final isSelected = index == _selectedHour;
+                        return Center(
+                          child: Text(
+                            index.toString().padLeft(2, '0'),
+                            style: TextStyle(
+                              fontSize: isSelected ? 56 : 36,
+                              fontWeight: FontWeight.w400,
+                              color: isSelected
+                                  ? const Color(0xFF8AB4F8)
+                                  : Colors.white.withOpacity(0.2),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  const Text(
+                ),
+                // Colon separator
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text(
                     ':',
                     style: TextStyle(
-                      fontSize: 72,
+                      fontSize: 56,
                       fontWeight: FontWeight.w300,
                       color: Colors.white54,
                     ),
                   ),
-                  Text(
-                    minutes,
-                    style: const TextStyle(
-                      fontSize: 72,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                      letterSpacing: -2,
+                ),
+                // Minute wheel
+                SizedBox(
+                  width: 100,
+                  child: ListWheelScrollView.useDelegate(
+                    controller: _minuteController,
+                    itemExtent: 64,
+                    perspective: 0.003,
+                    diameterRatio: 1.5,
+                    physics: const FixedExtentScrollPhysics(),
+                    onSelectedItemChanged: (index) {
+                      setState(() {
+                        _selectedMinute = index;
+                      });
+                    },
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      childCount: 60,
+                      builder: (context, index) {
+                        final isSelected = index == _selectedMinute;
+                        return Center(
+                          child: Text(
+                            index.toString().padLeft(2, '0'),
+                            style: TextStyle(
+                              fontSize: isSelected ? 56 : 36,
+                              fontWeight: FontWeight.w400,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.2),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
+          const SizedBox(height: 8),
           Divider(height: 1, color: Colors.white.withOpacity(0.1)),
 
           // --- Settings List ---
 
-          // Required Steps (unique to Step Alarm)
+          // Required Steps
           _buildSettingTile(
             icon: Icons.directions_walk,
             title: 'Required steps',
