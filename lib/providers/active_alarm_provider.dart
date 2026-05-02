@@ -14,7 +14,7 @@ enum ActiveAlarmState {
 
 class ActiveAlarmProvider extends ChangeNotifier {
   final AlarmProvider alarmProvider;
-  StreamSubscription<AlarmSettings>? _ringSubscription;
+  StreamSubscription<AlarmSet>? _ringSubscription;
   StreamSubscription<StepCount>? _stepSubscription;
   
   ActiveAlarmState _state = ActiveAlarmState.idle;
@@ -42,8 +42,21 @@ class ActiveAlarmProvider extends ChangeNotifier {
   }
 
   void _initRingListener() {
-    _ringSubscription = Alarm.ringing.listen((alarmSettings) {
-      _handleAlarmRing(alarmSettings);
+    _ringSubscription = Alarm.ringing.listen((alarmSet) {
+      if (alarmSet.alarms.isNotEmpty) {
+        // Just take the first ringing alarm
+        final alarmSettings = alarmSet.alarms.first;
+        
+        // Prevent re-triggering if we are already processing this alarm
+        if (_state != ActiveAlarmState.idle && _activeStepAlarm != null) {
+          int originalId = alarmSettings.id >= 100000 ? alarmSettings.id - 100000 : alarmSettings.id;
+          if (_activeStepAlarm!.id == originalId) {
+            return;
+          }
+        }
+        
+        _handleAlarmRing(alarmSettings);
+      }
     });
   }
 
