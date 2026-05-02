@@ -89,7 +89,8 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
     );
     
     // If the time is in the past, schedule for tomorrow
-    if (dt.isBefore(now)) {
+    final nowWithoutSeconds = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+    if (dt.isBefore(nowWithoutSeconds)) {
       dt = dt.add(const Duration(days: 1));
     }
 

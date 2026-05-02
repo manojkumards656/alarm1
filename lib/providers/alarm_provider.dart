@@ -79,7 +79,9 @@ class AlarmProvider extends ChangeNotifier {
       if (isEnabled) {
         // If the date is in the past, move to next day
         DateTime scheduledTime = alarm.dateTime;
-        if (scheduledTime.isBefore(DateTime.now())) {
+        final now = DateTime.now();
+        final nowWithoutSeconds = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+        if (scheduledTime.isBefore(nowWithoutSeconds)) {
            scheduledTime = scheduledTime.add(const Duration(days: 1));
            _alarms[index] = alarm.copyWith(dateTime: scheduledTime);
            await _saveAlarms();

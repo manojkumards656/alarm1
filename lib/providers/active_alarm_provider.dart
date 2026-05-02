@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:pedometer/pedometer.dart';
@@ -39,7 +40,66 @@ class ActiveAlarmProvider extends ChangeNotifier {
   int get penaltySecondsRemaining => _penaltySecondsRemaining;
 
   ActiveAlarmProvider({required this.alarmProvider}) {
+    _init();
+  }
+
+  Future<void> _init() async {
+    await _restoreState();
     _initRingListener();
+  }
+
+  Future<void> _saveState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_state == ActiveAlarmState.idle) {
+      await prefs.remove('active_alarm_state');
+      await prefs.remove('active_alarm_id');
+      await prefs.remove('active_alarm_seconds');
+      return;
+    }
+    
+    await prefs.setInt('active_alarm_state', _state.index);
+    if (_activeStepAlarm != null) {
+      await prefs.setInt('active_alarm_id', _activeStepAlarm!.id);
+    }
+    if (_state == ActiveAlarmState.stepVerificationPhase15) {
+      await prefs.setInt('active_alarm_seconds', _secondsRemaining);
+    } else if (_state == ActiveAlarmState.penaltyRingingPhase2) {
+      await prefs.setInt('active_alarm_seconds', _penaltySecondsRemaining);
+    }
+  }
+
+  Future<void> _restoreState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stateIndex = prefs.getInt('active_alarm_state');
+    
+    if (stateIndex != null && stateIndex != ActiveAlarmState.idle.index) {
+      final alarmId = prefs.getInt('active_alarm_id');
+      if (alarmId != null) {
+        final stepAlarm = alarmProvider.alarms.firstWhere(
+          (a) => a.id == alarmId,
+          orElse: () => StepAlarmSettings(
+            id: alarmId, 
+            dateTime: DateTime.now(), 
+            label: 'Unknown Alarm',
+          ),
+        );
+        _activeStepAlarm = stepAlarm;
+        _state = ActiveAlarmState.values[stateIndex];
+        
+        if (_state == ActiveAlarmState.ringingPhase1) {
+          notifyListeners();
+        } else if (_state == ActiveAlarmState.stepVerificationPhase15) {
+          _secondsRemaining = prefs.getInt('active_alarm_seconds') ?? (stepAlarm.timeLimitMinutes * 60);
+          _startCountdownTimer();
+          _startStepTracking();
+          notifyListeners();
+        } else if (_state == ActiveAlarmState.penaltyRingingPhase2) {
+          _penaltySecondsRemaining = prefs.getInt('active_alarm_seconds') ?? 60;
+          _startPenaltyTimer();
+          notifyListeners();
+        }
+      }
+    }
   }
 
   void _initRingListener() {
@@ -86,6 +146,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
 
   void _startRingingPhase1() {
     _state = ActiveAlarmState.ringingPhase1;
+    _saveState();
     notifyListeners();
   }
 
@@ -123,6 +184,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
     
     _startCountdownTimer();
     _startStepTracking();
+    _saveState();
     notifyListeners();
   }
 
@@ -131,6 +193,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         _secondsRemaining--;
+        if (_secondsRemaining % 5 == 0) _saveState(); // Save state every 5 seconds
         notifyListeners();
       } else {
         // Time ran out! The penalty alarm will fire on its own via the Alarm package.
@@ -182,6 +245,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
     }
     
     _state = ActiveAlarmState.idle;
+    _saveState();
     notifyListeners();
   }
 
@@ -189,10 +253,18 @@ class ActiveAlarmProvider extends ChangeNotifier {
     _cleanupAll();
     _state = ActiveAlarmState.penaltyRingingPhase2;
     _penaltySecondsRemaining = 60; // 1 minute of continuous ringing
+    _saveState();
+    _startPenaltyTimer();
     
+    notifyListeners();
+  }
+
+  void _startPenaltyTimer() {
+    _penaltyTimer?.cancel();
     _penaltyTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_penaltySecondsRemaining > 0) {
         _penaltySecondsRemaining--;
+        if (_penaltySecondsRemaining % 5 == 0) _saveState(); // Save state every 5 seconds
         notifyListeners();
       } else {
         // Stop penalty and restart step verification
@@ -200,8 +272,6 @@ class ActiveAlarmProvider extends ChangeNotifier {
         _restartStepVerification();
       }
     });
-    
-    notifyListeners();
   }
 
   Future<void> _restartStepVerification() async {
