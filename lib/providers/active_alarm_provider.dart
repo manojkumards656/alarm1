@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
 import 'package:pedometer/pedometer.dart';
+import 'package:alarm/utils/alarm_set.dart';
 import '../models/step_alarm_settings.dart';
 import 'alarm_provider.dart';
 
