@@ -28,8 +28,7 @@ class RingingScreen extends StatelessWidget {
                   // Clock
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         timeString,

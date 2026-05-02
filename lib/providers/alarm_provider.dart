@@ -40,12 +40,13 @@ class AlarmProvider extends ChangeNotifier {
   Future<void> addAlarm(StepAlarmSettings alarm) async {
     _alarms.add(alarm);
     _sortAlarms();
+    notifyListeners(); // Notify instantly for UI responsiveness
+    
     await _saveAlarms();
     
     if (alarm.isEnabled) {
       await scheduleAlarm(alarm);
     }
-    notifyListeners();
   }
 
   Future<void> updateAlarm(StepAlarmSettings alarm) async {
@@ -53,6 +54,8 @@ class AlarmProvider extends ChangeNotifier {
     if (index != -1) {
       _alarms[index] = alarm;
       _sortAlarms();
+      notifyListeners(); // Notify instantly for UI responsiveness
+      
       await _saveAlarms();
       
       // Reschedule or cancel
@@ -61,7 +64,6 @@ class AlarmProvider extends ChangeNotifier {
       } else {
         await cancelAlarm(alarm.id);
       }
-      notifyListeners();
     }
   }
 
@@ -70,6 +72,8 @@ class AlarmProvider extends ChangeNotifier {
     if (index != -1) {
       final alarm = _alarms[index].copyWith(isEnabled: isEnabled);
       _alarms[index] = alarm;
+      notifyListeners(); // Notify instantly for UI responsiveness
+      
       await _saveAlarms();
       
       if (isEnabled) {
@@ -84,15 +88,15 @@ class AlarmProvider extends ChangeNotifier {
       } else {
         await cancelAlarm(id);
       }
-      notifyListeners();
     }
   }
 
   Future<void> deleteAlarm(int id) async {
     _alarms.removeWhere((a) => a.id == id);
+    notifyListeners(); // Notify instantly for UI responsiveness
+    
     await _saveAlarms();
     await cancelAlarm(id);
-    notifyListeners();
   }
 
   Future<void> scheduleAlarm(StepAlarmSettings stepAlarm) async {

@@ -52,6 +52,12 @@ class _EditAlarmScreenState extends State<EditAlarmScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: _selectedTime,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.15,
+          child: child,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
