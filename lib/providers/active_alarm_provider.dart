@@ -42,7 +42,7 @@ class ActiveAlarmProvider extends ChangeNotifier {
   }
 
   void _initRingListener() {
-    _ringSubscription = Alarm.ringStream.stream.listen((alarmSettings) {
+    _ringSubscription = Alarm.ringingStream.listen((alarmSettings) {
       _handleAlarmRing(alarmSettings);
     });
   }
@@ -92,11 +92,14 @@ class ActiveAlarmProvider extends ChangeNotifier {
       assetAudioPath: _activeStepAlarm!.customRingtonePath ?? 'assets/default_alarm.mp3',
       loopAudio: true,
       vibrate: true,
-      volume: 1.0,
-      fadeDuration: 0.0,
-      notificationTitle: "Penalty: Walk Failed!",
-      notificationBody: "You didn't walk enough. Time to get up!",
-      enableNotificationOnKill: true,
+      volumeSettings: const VolumeSettings.fixed(
+        volume: 1.0,
+        volumeEnforced: true,
+      ),
+      notificationSettings: const NotificationSettings(
+        title: "Penalty: Walk Failed!",
+        body: "You didn't walk enough. Time to get up!",
+      ),
     );
     await Alarm.set(alarmSettings: penaltySettings);
 

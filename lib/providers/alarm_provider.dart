@@ -102,11 +102,15 @@ class AlarmProvider extends ChangeNotifier {
       assetAudioPath: stepAlarm.customRingtonePath ?? 'assets/default_alarm.mp3',
       loopAudio: true,
       vibrate: stepAlarm.vibrate,
-      volume: 1.0, // Max volume
-      fadeDuration: 3.0,
-      notificationTitle: stepAlarm.label,
-      notificationBody: 'Wake up! It is time to walk.',
-      enableNotificationOnKill: true,
+      volumeSettings: VolumeSettings.fade(
+        volume: 1.0,
+        fadeDuration: const Duration(seconds: 3),
+        volumeEnforced: true,
+      ),
+      notificationSettings: NotificationSettings(
+        title: stepAlarm.label,
+        body: 'Wake up! It is time to walk.',
+      ),
     );
     await Alarm.set(alarmSettings: alarmSettings);
   }
