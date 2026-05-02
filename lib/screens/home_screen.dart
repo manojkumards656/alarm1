@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Checkbox(
                                       value: isSelected,
                                       onChanged: (_) => _toggleSelection(alarm.id),
-                                      activeColor: const Color(0xFF8AB4F8),
+                                      activeColor: const Color(0xFF6E9BE0),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(4),
                                       ),
@@ -211,8 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onChanged: (value) {
                                         alarmProvider.toggleAlarm(alarm.id, value);
                                       },
-                                      activeColor: const Color(0xFF8AB4F8),
-                                      activeTrackColor: const Color(0xFF8AB4F8).withOpacity(0.4),
+                                      activeColor: const Color(0xFF6E9BE0),
+                                      activeTrackColor: const Color(0xFF6E9BE0).withOpacity(0.4),
                                       inactiveThumbColor: Colors.grey.shade500,
                                       inactiveTrackColor: Colors.grey.shade800,
                                     ),
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               },
-              backgroundColor: const Color(0xFF8AB4F8),
+              backgroundColor: const Color(0xFF6E9BE0),
               elevation: 4,
               shape: const CircleBorder(),
               child: const Icon(Icons.add, color: Colors.black, size: 28),

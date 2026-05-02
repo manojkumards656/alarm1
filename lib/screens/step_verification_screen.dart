@@ -76,7 +76,7 @@ class StepVerificationScreen extends StatelessWidget {
                             child: CircularProgressIndicator(
                               value: progress,
                               strokeWidth: 12,
-                              color: const Color(0xFF8AB4F8),
+                              color: const Color(0xFF6E9BE0),
                               strokeCap: StrokeCap.round,
                             ),
                           ),
@@ -87,7 +87,7 @@ class StepVerificationScreen extends StatelessWidget {
                               Icon(
                                 Icons.directions_walk,
                                 size: 32,
-                                color: const Color(0xFF8AB4F8).withOpacity(0.8),
+                                color: const Color(0xFF6E9BE0).withOpacity(0.8),
                               ),
                               const SizedBox(height: 4),
                               Text(

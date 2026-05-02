@@ -109,10 +109,10 @@ class RingingScreen extends StatelessWidget {
                         height: 180,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF8AB4F8),
+                          color: const Color(0xFF6E9BE0),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF8AB4F8).withOpacity(0.3),
+                              color: const Color(0xFF6E9BE0).withOpacity(0.3),
                               blurRadius: 40,
                               spreadRadius: 8,
                             ),
