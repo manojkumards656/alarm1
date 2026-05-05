@@ -110,9 +110,8 @@ class AlarmProvider extends ChangeNotifier {
       vibrate: stepAlarm.vibrate,
       warningNotificationOnKill: true,
       androidFullScreenIntent: true,
-      volumeSettings: VolumeSettings.fade(
+      volumeSettings: const VolumeSettings.fixed(
         volume: 1.0,
-        fadeDuration: const Duration(seconds: 3),
         volumeEnforced: true,
       ),
       notificationSettings: NotificationSettings(
