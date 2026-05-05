@@ -19,6 +19,14 @@ void main() async {
   await Permission.notification.request();
   await Permission.scheduleExactAlarm.request();
   await Permission.activityRecognition.request(); // For Pedometer
+  await Permission.ignoreBatteryOptimizations.request();
+  await Permission.systemAlertWindow.request();
+
+  // Set warning notification if app is killed
+  await Alarm.setWarningNotificationOnKill(
+    'Step Alarm',
+    'Alarm may not ring if the app is killed.',
+  );
 
   runApp(const StepAlarmApp());
 }

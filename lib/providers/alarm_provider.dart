@@ -108,6 +108,8 @@ class AlarmProvider extends ChangeNotifier {
       assetAudioPath: stepAlarm.customRingtonePath ?? 'assets/default_alarm.mp3',
       loopAudio: true,
       vibrate: stepAlarm.vibrate,
+      warningNotificationOnKill: true,
+      androidFullScreenIntent: true,
       volumeSettings: VolumeSettings.fade(
         volume: 1.0,
         fadeDuration: const Duration(seconds: 3),
