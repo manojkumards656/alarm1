@@ -41,6 +41,8 @@ dependencies:
   provider: ^6.1.5+1
   intl: ^0.20.2
   pedometer: ^4.2.0
+  device_info_plus: ^11.3.3
+  disable_battery_optimization: ^1.1.1
 
 dev_dependencies:
   flutter_test:

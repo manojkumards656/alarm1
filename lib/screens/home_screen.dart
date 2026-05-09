@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/alarm_provider.dart';
 import 'edit_alarm_screen.dart';
+import 'battery_setup_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +15,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Set<int> _selectedAlarms = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final setupDone = prefs.getBool('battery_setup_shown') ?? false;
+    if (!setupDone && mounted) {
+      await prefs.setBool('battery_setup_shown', true);
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (_) => const BatterySetupScreen(),
+        ));
+      }
+    }
+  }
 
   void _toggleSelection(int id) {
     setState(() {
@@ -95,7 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const Icon(Icons.more_vert, color: Colors.white54, size: 24),
+                    IconButton(
+                      icon: const Icon(Icons.settings_outlined, color: Colors.white54, size: 24),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const BatterySetupScreen(),
+                        ));
+                      },
+                    ),
                   ],
                 ],
               ),
