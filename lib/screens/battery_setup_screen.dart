@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +18,7 @@ class _BatterySetupScreenState extends State<BatterySetupScreen> {
   String _brand = '';
   String _model = '';
   bool _batteryOptDisabled = false;
-  bool _autoStartEnabled = false;
+  bool _autoStartConfirmed = false;
   bool _loading = true;
 
   @override
@@ -33,33 +33,74 @@ class _BatterySetupScreenState extends State<BatterySetupScreen> {
       _brand = info.brand.toLowerCase();
       _model = info.model;
 
-      _batteryOptDisabled =
-          await DisableBatteryOptimization.isBatteryOptimizationDisabled ?? false;
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      _batteryOptDisabled = status.isGranted;
 
-      // Check autostart from shared prefs (user-confirmed)
       final prefs = await SharedPreferences.getInstance();
-      _autoStartEnabled = prefs.getBool('autostart_confirmed') ?? false;
+      _autoStartConfirmed = prefs.getBool('autostart_confirmed') ?? false;
     }
     setState(() => _loading = false);
   }
 
   Future<void> _disableBatteryOptimization() async {
-    await DisableBatteryOptimization.showDisableBatteryOptimizationSettings();
-    // Re-check after user returns
-    await Future.delayed(const Duration(seconds: 1));
-    final result =
-        await DisableBatteryOptimization.isBatteryOptimizationDisabled ?? false;
-    setState(() => _batteryOptDisabled = result);
+    final status = await Permission.ignoreBatteryOptimizations.request();
+    setState(() => _batteryOptDisabled = status.isGranted);
   }
 
-  Future<void> _openAutoStart() async {
-    await DisableBatteryOptimization.showEnableAutoStartSettings(
-      'Enable Auto Start',
-      'Allow Step Alarm to start automatically so alarms fire reliably.',
-    );
+  Future<void> _openAutoStartSettings() async {
+    // Try to open manufacturer-specific autostart settings
+    const platform = MethodChannel('com.example.stepalarm/settings');
+    try {
+      // Try common manufacturer settings intents
+      final intents = _getAutoStartIntents();
+      for (final intent in intents) {
+        try {
+          await platform.invokeMethod('openIntent', intent);
+          break;
+        } catch (_) {
+          continue;
+        }
+      }
+    } catch (_) {
+      // Fallback: open general app settings
+      await openAppSettings();
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('autostart_confirmed', true);
-    setState(() => _autoStartEnabled = true);
+    setState(() => _autoStartConfirmed = true);
+  }
+
+  Future<void> _openAppBatterySettings() async {
+    // Opens the app's specific battery settings page
+    await openAppSettings();
+  }
+
+  List<Map<String, String>> _getAutoStartIntents() {
+    switch (_brand) {
+      case 'xiaomi':
+      case 'redmi':
+      case 'poco':
+        return [
+          {'package': 'com.miui.securitycenter', 'class': 'com.miui.permcenter.autostart.AutoStartManagementActivity'},
+        ];
+      case 'oppo':
+      case 'realme':
+        return [
+          {'package': 'com.coloros.safecenter', 'class': 'com.coloros.safecenter.permission.startup.StartupAppListActivity'},
+        ];
+      case 'vivo':
+        return [
+          {'package': 'com.iqoo.secure', 'class': 'com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity'},
+        ];
+      case 'huawei':
+      case 'honor':
+        return [
+          {'package': 'com.huawei.systemmanager', 'class': 'com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity'},
+        ];
+      default:
+        return [];
+    }
   }
 
   bool get _needsAutoStart =>
@@ -207,30 +248,37 @@ class _BatterySetupScreenState extends State<BatterySetupScreen> {
 
                 const SizedBox(height: 16),
 
-                // Step 2: Auto Start (OEM specific)
-                if (_needsAutoStart)
-                  _buildStep(
-                    number: 2,
-                    title: 'Enable Auto Start',
-                    subtitle: 'Required for ${_brand.toUpperCase()} devices to allow background alarms.',
-                    done: _autoStartEnabled,
-                    buttonText: _autoStartEnabled ? 'Done ✓' : 'Open Settings',
-                    onTap: _autoStartEnabled ? null : _openAutoStart,
-                  ),
-
-                if (_needsAutoStart) const SizedBox(height: 16),
-
-                // Step 3: Exact Alarm Permission
+                // Step 2: App Battery Settings (manual)
                 _buildStep(
-                  number: _needsAutoStart ? 3 : 2,
-                  title: 'Allow Exact Alarms',
-                  subtitle: 'Required on Android 12+ for precise alarm timing.',
-                  done: true, // Already requested in main()
-                  buttonText: 'Done ✓',
-                  onTap: null,
+                  number: 2,
+                  title: 'Set Battery to Unrestricted',
+                  subtitle: 'Open app settings and set battery to "Unrestricted" or "No restrictions".',
+                  done: false,
+                  buttonText: 'Open App Settings',
+                  onTap: _openAppBatterySettings,
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+
+                // Step 3: Auto Start (OEM specific)
+                if (_needsAutoStart) ...[
+                  _buildStep(
+                    number: 3,
+                    title: 'Enable Auto Start',
+                    subtitle: 'Required for ${_brand.toUpperCase()} devices to allow background alarms.',
+                    done: _autoStartConfirmed,
+                    buttonText: _autoStartConfirmed ? 'Done ✓' : 'Open Settings',
+                    onTap: _autoStartConfirmed ? null : () async {
+                      await openAppSettings();
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('autostart_confirmed', true);
+                      setState(() => _autoStartConfirmed = true);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                const SizedBox(height: 16),
 
                 // Device-specific tips
                 const Text(
